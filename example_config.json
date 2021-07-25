@@ -1,0 +1,6 @@
+{
+    "logLevel": "debug",
+    "logOutput": "file",
+    "automaticallyAmputate": true,
+    "discordToken": "PUT YOUR DISCORD TOKEN HERE"
+}
