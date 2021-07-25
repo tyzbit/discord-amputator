@@ -71,7 +71,9 @@ async def amputate(bot_state, client, extractor, message):
   for url in urls:
     if amp_fragment in url:
       logger.info(f'Amputating URL: {url}', extra={'guild': guild})
-      amputated_urls_str = f'{amputated_urls_str}{url.replace("https://www.google.com/amp/s/", "https://")}\n'
+      new_url = url.replace("https://www.google.com/amp/s/", "https://")
+      new_url = remove_suffix(new_url, '/amp/')
+      amputated_urls_str = f'{amputated_urls_str}{new_url}\n'
   amputated_urls_str = remove_suffix(amputated_urls_str, "\n")
 
   embed = discord.Embed()
