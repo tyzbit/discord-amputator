@@ -48,6 +48,7 @@ class BotState:
       except Exception as e:
         state_logger.error(f'Config file not found at {config_file}, exiting')
         sys.exit(1)
+    state_logger.removeHandler(ch)
 
 async def post_message(target=None, text=None, embed=None):
   '''
