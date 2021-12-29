@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pathlib
+import requests
 import sys
 import time
 import urllib
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 from urlextract import URLExtract
 
 amp_fragment = "https://www.google.com/amp/s/"
+amputator_bot_api = "https://www.amputatorbot.com/api/v1/convert"
 
 # https://stackoverflow.com/a/66683635/12948940
 def remove_suffix(input_string, suffix):
@@ -50,6 +52,28 @@ class BotState:
         sys.exit(1)
     state_logger.removeHandler(ch)
 
+async def call_amputator_api(urls, gac=True, md=3):
+  '''
+  Calls the Amputator API
+  Docs: https://documenter.getpostman.com/view/12422626/UVC3n93T
+  gac = Guess and Check
+  md = Max Depth
+  '''
+  query_string = f'gac={str(gac).lower()}&md={md}&q={urls}'
+  response = requests.get(amputator_bot_api + f'?{query_string}', allow_redirects=False)
+  try:
+    response_json = json.loads(response.content)
+    try:
+      return [result['canonical']['url'] for result in response_json]
+    except:
+      logger.error(f'Could not iterate through response objects from Amputatorbot API', extra={'guild': 'internal'})
+  except:
+    logger.error(f'Response from Amputator API was not json', extra={'guild': 'internal'})
+    logger.debug(f'Amputatorbot API Response Status Code: {response.status_code}', extra={'guild': 'internal'})
+    logger.debug(f'Amputatorbot API Response Content: {response.content}', extra={'guild': 'internal'})
+  return None
+
+
 async def post_message(target=None, text=None, embed=None):
   '''
   Sends a target (user, DM) the text string or embed provided
@@ -80,36 +104,43 @@ async def amputate(bot_state, client, extractor, message):
 
   config = bot_state.config
   urls = extractor.find_urls(message.content)
+  amp_urls = []
   amputated_urls_str = ""
   for url in urls:
     if amp_fragment in url:
-      logger.info(f'Amputating URL: {url}', extra={'guild': guild})
-      new_url = url.replace("https://www.google.com/amp/s/", "https://")
-      new_url = remove_suffix(new_url, '/amp/')
-      amputated_urls_str = f'{amputated_urls_str}{new_url}\n'
-  amputated_urls_str = remove_suffix(amputated_urls_str, "\n")
+      amp_urls.append(url)
+  if amp_urls != []:
+    logger.info(f'Amputating URLs: {amp_urls}', extra={'guild': guild})
+    amped_urls = await call_amputator_api(amp_urls)
+    if amped_urls is None:
+      logger.warning(f'call_amputator_api returned None', extra={'guild': guild})
+      amputated_urls_str = "Failed to amputate URL."
+    else:
+      for amped_url in amped_urls:
+        amputated_urls_str = f'{amputated_urls_str}{amped_url}\n'
+        amputated_urls_str = remove_suffix(amputated_urls_str, "\n")
 
-  embed = discord.Embed()
-  embed.color = 6591981 # cornflower blue
-  embed.add_field(name='Amputated link', value=amputated_urls_str, inline=False)
+    embed = discord.Embed()
+    embed.color = 6591981 # cornflower blue
+    embed.add_field(name='Amputated link', value=amputated_urls_str, inline=False)
 
-  send_dm = False
-  try:
-    target = message.channel
+    send_dm = False
     try:
-      if bot_state.config['automaticallyAmputate']:
-        send_dm = True
-      else:
-        logger.info(f'Saw a link to amputate but "automaticallyAmputate" is not true', extra={'guild': guild})
-    except:
-      logger.warn(f'"automaticallyAmputate" is not set', extra={'guild': guild})
-  except Exception as e:
-    logger.info(f'Could not get channel from message, assuming we need to DM', extra={'guild': guild})
-    target = message.author
-    send_dm = True
-  
-  if send_dm:
-    await post_message(target=target, embed=embed)
+      target = message.channel
+      try:
+        if bot_state.config['automaticallyAmputate']:
+          send_dm = True
+        else:
+          logger.info(f'Saw a link to amputate but "automaticallyAmputate" is not true', extra={'guild': guild})
+      except:
+        logger.warn(f'"automaticallyAmputate" is not set', extra={'guild': guild})
+    except Exception as e:
+      logger.info(f'Could not get channel from message, assuming we need to DM', extra={'guild': guild})
+      target = message.author
+      send_dm = True
+    
+    if send_dm:
+      await post_message(target=target, embed=embed)
 
 async def status_command(bot_state, client, message):
   config = bot_state.config
