@@ -2,6 +2,9 @@
     "administratorIds": [],
     "automaticallyAmputate": true,
     "discordToken": "PUT DISCORD TOKEN HERE",
+    "guessAndCheck": true,
+    "maxDepth": 3,
     "logLevel": "debug",
-    "logOutput": "both"
+    "logOutput": "both",
+    "userAgent": "Discord-Amputator bot"
 }
