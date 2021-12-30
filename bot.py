@@ -13,7 +13,7 @@ from urlextract import URLExtract
 
 amp_fragment = "https://www.google.com/amp/s/"
 amputator_bot_api = "https://www.amputatorbot.com/api/v1/convert"
-default_user_agent = 'DiscordAmputator bot'
+default_user_agent = 'Discord-Amputator bot'
 
 # https://stackoverflow.com/a/66683635/12948940
 def remove_suffix(input_string, suffix):
