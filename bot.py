@@ -9,7 +9,6 @@ import sys
 import time
 import urllib
 from dotenv import load_dotenv
-from requests.api import head
 from urlextract import URLExtract
 
 amp_fragment = "https://www.google.com/amp/s/"
