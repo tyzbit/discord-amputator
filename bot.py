@@ -60,7 +60,12 @@ async def call_amputator_api(urls, gac=True, md=3):
   gac = Guess and Check
   md = Max Depth
   '''
-  query_string = f'gac={str(gac).lower()}&md={md}&q={urls}'
+  url_string = urls[0]
+  if len(urls) > 1:
+    # Start iterating at the second element (1) since the first element (0) is already part of the string.
+    for url in urls[1:]:
+      url_string = f';{url_string}'
+  query_string = f'gac={str(gac).lower()}&md={md}&q={url_string}'
   try:
     user_agent_string = config['userAgent']
   except:
@@ -122,7 +127,15 @@ async def amputate(bot_state, client, extractor, message):
       amp_urls.append(url)
   if amp_urls != []:
     logger.info(f'Amputating URLs: {amp_urls}', extra={'guild': guild})
-    amped_urls = await call_amputator_api(amp_urls)
+    try:
+      gac = config['guessAndCheck']
+    except:
+      gac = True
+    try:
+      md = config['maxDepth']
+    except:
+      md = 3
+    amped_urls = await call_amputator_api(urls=amp_urls, gac=gac, md=md)
     if amped_urls is None:
       logger.warning(f'call_amputator_api returned None', extra={'guild': guild})
       amputated_urls_str = "Failed to amputate URL."
