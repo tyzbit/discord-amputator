@@ -3,5 +3,6 @@
     "automaticallyAmputate": true,
     "discordToken": "PUT DISCORD TOKEN HERE",
     "logLevel": "debug",
-    "logOutput": "both"
+    "logOutput": "both",
+    "userAgent": "Discord-Amputator bot"
 }

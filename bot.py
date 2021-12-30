@@ -9,10 +9,12 @@ import sys
 import time
 import urllib
 from dotenv import load_dotenv
+from requests.api import head
 from urlextract import URLExtract
 
 amp_fragment = "https://www.google.com/amp/s/"
 amputator_bot_api = "https://www.amputatorbot.com/api/v1/convert"
+default_user_agent = 'DiscordAmputator-bot'
 
 # https://stackoverflow.com/a/66683635/12948940
 def remove_suffix(input_string, suffix):
@@ -60,8 +62,18 @@ async def call_amputator_api(urls, gac=True, md=3):
   md = Max Depth
   '''
   query_string = f'gac={str(gac).lower()}&md={md}&q={urls}'
-  response = requests.get(amputator_bot_api + f'?{query_string}', allow_redirects=False)
   try:
+    user_agent_string = config['userAgent']
+  except:
+    user_agent_string = default_user_agent
+  headers = {
+    'User-Agent': f'{user_agent_string} {os.environ.get("SOURCE_URL")}@{os.environ.get("SOURCE_COMMIT")}, built at {os.environ.get("BUILD_DATE")}. Docker image {os.environ.get("IMAGE_NAME")}',
+    'Accept': 'application/json'
+  }
+  logger.debug(f'Calling Amputator API, query string: {query_string}, headers: {headers}', extra={'guild': 'internal'})
+  response = requests.get(amputator_bot_api + f'?{query_string}', allow_redirects=False, headers=headers)
+  try:
+    logger.debug(f'Trying to load response as JSON', extra={'guild': 'internal'})
     response_json = json.loads(response.content)
     try:
       return [result['canonical']['url'] for result in response_json]
