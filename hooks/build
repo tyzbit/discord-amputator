@@ -2,6 +2,6 @@
 
 docker build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
              --build-arg SOURCE_COMMIT=${SOURCE_COMMIT:0:7} \
-             --build-arg SOURCE_URL=${SOURCE_URL} \
-             --build-arg IMAGE_NAME:${IMAGE_NAME} \
+             --build-arg SOURCE_URL=$(git config --get remote.origin.url) \
+             --build-arg IMAGE_NAME:${DOCKER_REPO}:${DOCKER_TAG} \
              -t $IMAGE_NAME .

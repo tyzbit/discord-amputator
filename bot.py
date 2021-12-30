@@ -11,7 +11,7 @@ import urllib
 from dotenv import load_dotenv
 from urlextract import URLExtract
 
-amp_fragment = "https://www.google.com/amp/s/"
+amp_fragment = "amp"
 amputator_bot_api = "https://www.amputatorbot.com/api/v1/convert"
 default_user_agent = 'Discord-Amputator bot'
 
@@ -64,7 +64,7 @@ async def call_amputator_api(urls, gac=True, md=3):
   if len(urls) > 1:
     # Start iterating at the second element (1) since the first element (0) is already part of the string.
     for url in urls[1:]:
-      url_string = f';{url_string}'
+      url_string = f'{url_string};{url}'
   query_string = f'gac={str(gac).lower()}&md={md}&q={url_string}'
   try:
     user_agent_string = config['userAgent']
@@ -122,6 +122,7 @@ async def amputate(bot_state, client, extractor, message):
   urls = extractor.find_urls(message.content)
   amp_urls = []
   amputated_urls_str = ""
+  plural = ""
   for url in urls:
     if amp_fragment in url:
       amp_urls.append(url)
@@ -140,13 +141,14 @@ async def amputate(bot_state, client, extractor, message):
       logger.warning(f'call_amputator_api returned None', extra={'guild': guild})
       amputated_urls_str = "Failed to amputate URL."
     else:
+      if len(amped_urls) > 1:
+        plural = 's'
       for amped_url in amped_urls:
         amputated_urls_str = f'{amputated_urls_str}{amped_url}\n'
-        amputated_urls_str = remove_suffix(amputated_urls_str, "\n")
 
     embed = discord.Embed()
     embed.color = 6591981 # cornflower blue
-    embed.add_field(name='Amputated link', value=amputated_urls_str, inline=False)
+    embed.add_field(name=f'Amputated link{plural}', value=amputated_urls_str, inline=False)
 
     send_dm = False
     try:
