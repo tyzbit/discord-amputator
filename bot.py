@@ -4,14 +4,14 @@ import json
 import logging
 import os
 import pathlib
+import re
 import requests
 import sys
 import time
-import urllib
 from dotenv import load_dotenv
 from urlextract import URLExtract
 
-amp_fragment = "amp"
+amp_regex = ".*[\.\/\-]amp[\-\.\/]?.*"
 amputator_bot_api = "https://www.amputatorbot.com/api/v1/convert"
 default_user_agent = 'Discord-Amputator bot'
 
@@ -124,7 +124,7 @@ async def amputate(bot_state, client, extractor, message):
   amputated_urls_str = ""
   plural = ""
   for url in urls:
-    if amp_fragment in url:
+    if re.match(amp_regex, url):
       amp_urls.append(url)
   if amp_urls != []:
     logger.info(f'Amputating URLs: {amp_urls}', extra={'guild': guild})
@@ -237,7 +237,7 @@ def main(bot_state):
         logger.debug(f'Calling {function}', extra={'guild': guild})
         await call_function(bot_state, client, message)
     
-    if amp_fragment in message.content:
+    if re.match(amp_regex, message.content):
       await amputate(bot_state, client, extractor, message)
 
   @client.event
