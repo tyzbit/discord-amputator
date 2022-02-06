@@ -90,7 +90,7 @@ async def call_amputator_api(urls, gac=True, md=3):
   return None
 
 
-async def post_message(target=None, text=None, embed=None):
+async def post_message(target=None, message=None, text=None, embed=None):
   '''
   Sends a target (user, DM) the text string or embed provided
   '''
@@ -103,9 +103,9 @@ async def post_message(target=None, text=None, embed=None):
       name = target.recipient.name
     logger.debug(msg=f'Sending a message to {name}', extra={'guild': 'internal'})
     if embed:
-      return await target.send(embed=embed)
+      return await target.send(embed=embed, reference=message, mention_author=False)
     elif text:
-      return await target.send(text)
+      return await target.send(content=text, reference=message, mention_author=False)
     else:
       logger.error(f'send_dm called without text or embed', extra={'guild': 'internal'})
 
@@ -166,7 +166,7 @@ async def amputate(bot_state, client, extractor, message):
       send_dm = True
     
     if send_dm:
-      await post_message(target=target, embed=embed)
+      await post_message(target=target, message=message, embed=embed)
 
 async def status_command(bot_state, client, message):
   config = bot_state.config
@@ -196,7 +196,7 @@ async def status_command(bot_state, client, message):
     except:
       target = message.author
 
-    await post_message(target=target, embed=embed)
+    await post_message(target=target, message=message, embed=embed)
 
 async def update_activity(bot_state, client, message=None):
   await client.change_presence(
