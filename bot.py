@@ -114,7 +114,7 @@ async def amputate(bot_state, client, extractor, message):
   Removes Google amp from links, posts an embed with the amputated link
   '''
   try:
-    guild = message.guild.id
+    guild = f'{message.guild.id} | {message.guild.name}'
   except:
     guild = 'internal'
 
@@ -226,7 +226,7 @@ def main(bot_state):
       return
 
     try:
-      guild = message.guild.id
+      guild = f'{message.guild.id} | {message.guild.name}'
     except:
       guild = 'direct'      
 
@@ -242,12 +242,12 @@ def main(bot_state):
 
   @client.event
   async def on_guild_join(guild):
-    logger.info(f'Joined guild {guild.name}', extra={'guild': guild.id})
+    logger.info(f'Joined guild {guild.name}', extra={'guild': f'{guild.id} | {guild.name}'})
     await update_activity(bot_state, client)
   
   @client.event
   async def on_guild_remove(guild):
-    logger.info(f'Left guild {guild.name}', extra={'guild': guild.id})
+    logger.info(f'Left guild {guild.name}', extra={'guild': f'{guild.id} | {guild.name}'})
     await update_activity(bot_state, client)
 
   client.run(discordToken)
